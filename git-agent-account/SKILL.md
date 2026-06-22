@@ -8,9 +8,13 @@ description: >
 
 # Git Agent Account
 
-You operate under a dedicated GitHub account (e.g. `yrodiere-agent`)
-that is separate from the human's account. This has practical
-consequences for how you interact with git and GitHub.
+This skill is only relevant if you operate under a dedicated GitHub
+account (e.g. `yrodiere-agent`) that is separate from the human's
+account. If you share the human's GitHub credentials, this skill does
+not apply.
+
+Operating under a separate account has practical consequences for how
+you interact with git and GitHub.
 
 ## Push Access
 
@@ -19,7 +23,7 @@ cannot push to the human's repositories or to upstream organizations.
 
 This means:
 
-- You work on the human's local clone, committing locally
+- You work on a local clone, committing locally
 - To push, you push to **your own fork**
 - Pull requests go from your fork to the human's repo (or upstream)
 
@@ -75,31 +79,11 @@ gh api repos/<owner>/<repo>/pulls/<number>/comments \
 Then push fixes to the same branch on your fork — the PR updates
 automatically.
 
-## Common Patterns
+## Working on the Human's Local Clone
 
-### Contributing to a repo you don't own
-
-```bash
-# Fork (idempotent — reuses existing fork)
-gh repo fork <owner>/<repo> --clone=true
-cd <repo>
-
-# Create branch, make changes, push
-git checkout -b my-feature
-# ... make changes ...
-git push -u origin my-feature
-
-# Open PR
-gh pr create --repo <owner>/<repo> \
-  --head <your-account>:my-feature \
-  --title "My feature" --body "..."
-```
-
-### Working on the human's local clone
-
-When the human's clone has `origin` pointing to their repo (not yours),
+When the local clone has `origin` pointing to the human's repo (not yours),
 you cannot push to `origin`. Options:
 
-1. Add your fork as a remote and push there
-2. Commit locally and let the human push
-3. Create fixup commits that the human will squash and push
+- Add your fork as a remote and push there
+- OR Commit locally and let the human push
+- OR Create fixup commits that the human will squash and push
