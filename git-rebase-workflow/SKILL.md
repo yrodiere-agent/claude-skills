@@ -2,18 +2,24 @@
 name: git-rebase-workflow
 description: >
   Patterns for interactive rebasing, fixup commits, and incremental
-  verification of multi-commit branches. Covers commit organization,
-  testing at each commit point, and coordinating with a human who
-  rewrites history.
+  verification of multi-commit branches. For complex, long-running tasks
+  where testing is expensive and changes have side-effects across many
+  modules.
 ---
 
 # Git Rebase Workflow
 
-## Core Principle
+This skill applies to complex, long-running tasks where:
 
-The human owns the git history. You produce fixup commits; the human
-squashes, reorders, and rewrites. Never force-push, never amend commits
-the human wrote, and never squash fixups yourself unless explicitly told to.
+1. Testing is expensive (e.g. large projects with long build times)
+2. The feature is complex and changes may have side-effects in many places
+
+This leads to back-and-forth to fix older commits that turn out to
+contain bugs — hence the structured workflow below.
+
+For simpler tasks, follow these patterns loosely. The human may also ask
+you to create regular (non-fixup) commits, or take the lead on squashing
+and rewriting only for the most complex cases.
 
 ## Interactive Rebase
 
@@ -26,7 +32,7 @@ GIT_SEQUENCE_EDITOR="sed -i 's/^pick /edit /'" git rebase -i <base>
 
 # Autosquash fixup commits:
 GIT_SEQUENCE_EDITOR="cat" git rebase -i --autosquash <base>  # preview
-git rebase -i --autosquash <base>                              # execute (non-interactive)
+git rebase -i --autosquash <base>                              # execute
 
 # Stop at a specific commit during rebase:
 GIT_SEQUENCE_EDITOR="sed -i 's/pick <hash>/edit <hash>/'" git rebase -i <base>
@@ -50,12 +56,14 @@ EOF
 
 ### Targeting Rules
 
-Match the fixup to the commit that introduced the code being fixed:
+Match the fixup to the commit that introduced the code being fixed.
 
-- Agroal/datasource changes → fixup for the datasource commit
-- Hibernate ORM/Reactive changes → fixup for the Hibernate commit
-- Injection scanning changes → fixup for the injection commit
-- Test assertion updates → fixup for whichever commit changed the error messages
+For example, in a branch with separate commits for datasource
+infrastructure, Hibernate refactoring, and injection scanning:
+
+- A fix to datasource code → fixup for the datasource commit
+- A fix to Hibernate code → fixup for the Hibernate commit
+- A fix that touches both → split into two fixup commits
 
 A single logical fix that touches files from different commits must be
 split into multiple fixup commits, one per target.
@@ -72,20 +80,14 @@ To verify: check out the squashed commit, build, and run the test.
 
 During an interactive rebase, at each `edit` stop:
 
-1. `./mvnw -Dquickly` — verify compilation (ignore pre-existing failures
-   like Gradle plugin issues)
+1. Quick build to verify compilation
 2. Amend the commit message if needed
-3. Run relevant extension tests:
-   ```bash
-   ./mvnw verify -f extensions/<name>/ -Dtest-containers -Dstart-containers
-   ```
-4. If tests fail, fix and create a fixup commit (not amend — the human
-   wants to see what you changed)
+3. Run relevant tests — not just the module you changed, but all modules
+   affected by the change
+4. If tests fail, fix and create a fixup commit (not amend — amending
+   makes it hard for the human to review what you changed compared to
+   the original commit)
 5. `git rebase --continue`
-
-Run ALL relevant tests, not just the extension you changed. A datasource
-change affects Agroal, Flyway, Liquibase, Hibernate ORM, Hibernate
-Reactive, Hibernate Envers, and Hibernate Search.
 
 ## When the Human Rewrites History
 
@@ -96,12 +98,9 @@ git fetch origin
 git log --oneline origin/main..HEAD   # see the new commit structure
 ```
 
-Check what changed vs your previous work:
-- Are your fixups squashed?
-- Were commits reordered or split?
-- Did the human add new commits?
-
-Do not assume your fixes survived — verify with `grep` for key changes.
+Check what changed vs your previous work. If you notice something that
+looks wrong (a fix that disappeared, a commit that seems incomplete),
+double-check your fixes survived and ask the human what happened.
 
 ## Recovery
 
@@ -113,7 +112,7 @@ git show <hash> --stat   # inspect
 git cherry-pick <hash>   # recover
 ```
 
-Tag important states so the human can fetch them:
+Tag important states so the human can fetch them from your fork:
 
 ```bash
 git tag fixup-commit3-v1 <hash>
@@ -148,30 +147,13 @@ When `git rebase --continue` hits a conflict:
 3. If a commit becomes empty after conflict resolution, either skip it
    or investigate why
 
-## Build Step Cycles
-
-When introducing build steps that consume `BeanDiscoveryFinishedBuildItem`
-(or similar late-phase items), anything that transitively produces
-`AdditionalBeanBuildItem`, `AnnotationsTransformerBuildItem`, or other
-items feeding into Arc's early phases creates a cycle. The fix is always
-to move the Arc-feeding production to a step that does not depend on
-the late-phase item:
-
-- Move `AdditionalBeanBuildItem` to an early step without the dependency
-- Convert beans from `AdditionalBeanBuildItem` to `SyntheticBeanBuildItem`
-  (which feeds into a later Arc phase)
-- Extract specific build item production into a separate step
-
-The cycle detector is static — it checks the step signature, not runtime
-behavior. Even if a step only conditionally produces the problematic item,
-the cycle is detected.
-
 ## Conventions
 
 - **Never use `--no-verify`** or skip hooks
-- **Never force-push** unless the human explicitly asks
-- **Prefer new commits over amending** — amending can lose the human's
-  work if a pre-commit hook fails
+- Force-pushing to your own fork is fine; never force-push to the
+  human's branch unless explicitly asked
+- **Prefer new commits over amending** — amending makes it hard for the
+  human to review what you changed compared to the original commit
 - **Use `git add <specific files>`** not `git add -A` — leftover
   untracked files from earlier operations can sneak in
 - **Always check `git status`** before committing to catch unintended files
