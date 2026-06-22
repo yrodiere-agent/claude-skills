@@ -135,8 +135,7 @@ static final QuarkusExtensionTest config = new QuarkusExtensionTest()
 - Use `.withEmptyApplication()` for tests with no application classes
 - Use `.setExcludedDependencies()` to remove extensions from classpath
 - Use `.setForcedDependencies()` to add extensions to classpath
-- The test class itself gets indexed — `@Inject` fields in the test
-  class ARE visible to injection point scanning
+- The test class itself is a CDI bean and can have `@Inject` fields, which will be handled like any other bean.
 
 ### Test Location
 
@@ -155,12 +154,3 @@ static final QuarkusExtensionTest config = new QuarkusExtensionTest()
 ## Common Pitfalls
 
 - **Classloading**: runtime code must never reference deployment classes
-- **Config keySet()**: `@WithUnnamedKey` causes the default key to always
-  appear in map `keySet()` — use `isAnyPropertySet()` as a workaround
-- **BeanResolver at BeanDiscoveryFinished**: `beansByType` is not
-  initialized yet — `getBeansByRawType()` will NPE. Use `getBeans()`
-  collection with manual filtering instead.
-- **Test-scoped JDBC drivers**: with multiple JDBC drivers on classpath,
-  a single test-scoped driver is automatically picked as default.
-  To test ambiguity, exclude the test-scoped one and force-add two
-  non-test-scoped drivers.
