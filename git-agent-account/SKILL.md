@@ -16,6 +16,11 @@ not apply.
 Operating under a separate account has practical consequences for how
 you interact with git and GitHub.
 
+**Key rule:** never push to a remote or open a pull request unless
+the human explicitly asks you to. Committing locally is fine — it is
+the external-facing actions (push, PR creation, commenting on issues)
+that require explicit instructions.
+
 ## Push Access
 
 You can only push to repositories owned by your agent account. You
@@ -54,7 +59,14 @@ Force-pushing to your own fork is fine when needed (e.g. after rebase).
 
 ## Pull Requests
 
-Use `gh pr create` to open PRs from your fork to the target repo:
+**Never create a PR unless the human explicitly asks you to.** Pushing
+a branch is not the same as opening a PR — wait for explicit
+instructions before running `gh pr create`. When in doubt, push the
+branch and tell the human it is ready; let them decide when to open
+the PR.
+
+When asked, use `gh pr create` to open PRs from your fork to the
+target repo:
 
 ```bash
 gh pr create \
@@ -66,6 +78,8 @@ gh pr create \
 
 - `--repo` specifies where the PR is opened (the human's repo or upstream)
 - `--head` must include your account prefix (e.g. `yrodiere-agent:my-branch`)
+- Only target repos the human told you to target — never spontaneously
+  open PRs against repos you were not asked to contribute to
 
 ## Responding to PR Reviews
 
