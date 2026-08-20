@@ -4,6 +4,10 @@ description: >
   Working inside a tpl-incus-spawn VM — a pre-configured recursive
   development environment for incus-spawn (isx). Covers what's already
   set up, how to build/test isx, and how nested Incus works.
+  TRIGGER — load at session start — whenever: the OS user is
+  `agentuser` (check `whoami`); OR `ISX_TEMPLATE` is set; OR
+  `~/.local/bin/isx` exists.
+  SKIP when already loaded this session.
 ---
 
 # Incus-Spawn Development Environment
@@ -57,6 +61,17 @@ isx destroy mytest              # Clean up
 Templates that require credentials (claude, gh tools) work because
 placeholder credentials pass the credential check, and the proxy
 chain (inner → outer) handles real credential injection.
+
+## sudo and missing packages
+
+You have passwordless `sudo` access. The base image is minimal —
+some common tools are not pre-installed:
+
+```bash
+sudo dnf install -y gawk          # needed by git-fork (awk)
+```
+
+Install what you need rather than working around missing tools.
 
 ## Key constraints
 
