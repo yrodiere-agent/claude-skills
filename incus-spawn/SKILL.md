@@ -58,6 +58,17 @@ Templates that require credentials (claude, gh tools) work because
 placeholder credentials pass the credential check, and the proxy
 chain (inner → outer) handles real credential injection.
 
+## sudo and missing packages
+
+You have passwordless `sudo` access. The base image is minimal —
+some common tools are not pre-installed:
+
+```bash
+sudo dnf install -y gawk          # needed by git-fork (awk)
+```
+
+Install what you need rather than working around missing tools.
+
 ## Key constraints
 
 - **HTTPS only for GitHub** — git SSH to github.com doesn't work;
