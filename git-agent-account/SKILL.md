@@ -4,6 +4,11 @@ description: >
   Working with git and GitHub as an agent using a dedicated account
   (e.g. "yrodiere-agent"). Covers forking, pushing, pull requests, and
   the constraints of not having push access to upstream repositories.
+  TRIGGER — read BEFORE any `git push` or `gh pr create` — whenever:
+  the OS user or GitHub account contains "agent" (check `whoami` or
+  `gh auth status`); OR the authenticated GitHub user differs from
+  the repo owner.
+  SKIP when you already loaded this skill this session.
 ---
 
 # Git Agent Account
