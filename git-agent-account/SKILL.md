@@ -4,6 +4,9 @@ description: >
   Working with git and GitHub as an agent using a dedicated account
   (e.g. "yrodiere-agent"). Covers forking, pushing, pull requests, and
   the constraints of not having push access to upstream repositories.
+  PROACTIVE: Load this skill BEFORE any `git push` or `gh pr create`,
+  when the GitHub account (from `gh auth status` or GH_TOKEN) differs
+  from the repo owner, or the OS user / GitHub user contains "agent".
 ---
 
 # Git Agent Account
