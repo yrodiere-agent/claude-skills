@@ -4,6 +4,10 @@ description: >
   Working inside a tpl-incus-spawn VM — a pre-configured recursive
   development environment for incus-spawn (isx). Covers what's already
   set up, how to build/test isx, and how nested Incus works.
+  TRIGGER — load at session start — whenever: the OS user is
+  `agentuser` (check `whoami`); OR `ISX_TEMPLATE` is set; OR
+  `~/.local/bin/isx` exists.
+  SKIP when already loaded this session.
 ---
 
 # Incus-Spawn Development Environment
