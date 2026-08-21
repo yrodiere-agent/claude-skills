@@ -89,13 +89,13 @@ The GitHub API token is shared with other processes on the same
 machine. Be conservative with API calls to avoid exhausting the rate
 limit for everyone.
 
-- **Never use `gh run watch`** — it polls aggressively and can burn
-  through hundreds of requests. Instead, run `gh pr checks` or
-  `gh run view` once after a reasonable delay (e.g. 5–10 minutes for
-  unit tests, longer for integration suites).
-- Avoid tight polling loops. If you need to wait for CI, use a single
-  background `sleep <seconds> && gh pr checks ...` rather than
-  repeated checks.
+- **`gh run watch` polls every 3 seconds by default** — that burns
+  through hundreds of requests in minutes. Always pass a longer
+  interval: `gh run watch <id> --interval 30` (or higher). Even
+  better, run a single delayed check in the background:
+  `sleep 300 && gh pr checks ...`.
+- Avoid tight polling loops. One check after a reasonable delay
+  (5–10 min for unit tests, longer for integration) is usually enough.
 - Before retrying after a rate-limit error, check
   `gh api rate_limit --jq '.resources.core'` and wait until the reset
   time.
