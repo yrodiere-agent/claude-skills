@@ -83,6 +83,23 @@ gh pr create \
 - Only target repos the human told you to target — never spontaneously
   open PRs against repos you were not asked to contribute to
 
+## GitHub API Rate Limits
+
+The GitHub API token is shared with other processes on the same
+machine. Be conservative with API calls to avoid exhausting the rate
+limit for everyone.
+
+- **`gh run watch` polls every 3 seconds by default** — that burns
+  through hundreds of requests in minutes. Always pass a longer
+  interval: `gh run watch <id> --interval 30` (or higher). Even
+  better, run a single delayed check in the background:
+  `sleep 300 && gh pr checks ...`.
+- Avoid tight polling loops. One check after a reasonable delay
+  (5–10 min for unit tests, longer for integration) is usually enough.
+- Before retrying after a rate-limit error, check
+  `gh api rate_limit --jq '.resources.core'` and wait until the reset
+  time.
+
 ## Responding to PR Reviews
 
 Check for reviews with:
