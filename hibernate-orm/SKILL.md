@@ -12,7 +12,7 @@ description: This skill should be used when the user works on Hibernate ORM code
 - Always work on dedicated feature branches, never commit directly to `main` or maintenance branches. When the target branch is not specified, default to branching from `main`.
 - All workspaces should have two remotes configured:
   - `upstream` -> `hibernate/hibernate-orm` (upstream repository)
-  - `origin` -> `mbellade/hibernate-orm` (personal fork)
+  - `origin` -> `<your github username>/hibernate-orm` (personal fork)
 
 ## PR Reviews
 
