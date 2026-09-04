@@ -29,6 +29,11 @@ mvnd test -Dtest=MyTest -f extensions/<name>/deployment/               # Run sin
   container-based tests because the `docker` CLI is unavailable.
 - **Do not use `-Dno-format`** — formatting and import sorting are
   applied automatically during compilation.
+- **`-Dquickly` skips import ordering checks** — the
+  `impsort-maven-plugin:check` goal is skipped, so misordered imports
+  pass locally but fail CI. After changing imports (especially when
+  moving classes between packages), run
+  `mvnd process-sources -f <module>` to fix ordering before pushing.
 - When using `./mvnw` instead of `mvnd`, add `-T 0.5C` to parallelize
   module builds.
 - **Remember the build is very long (10+ minutes)**. It is not a viable strategy to re-run it
