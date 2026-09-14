@@ -31,6 +31,7 @@ Note: these steps can be done as parallel sub-agents (Agent tool); do not skip t
 
 - The project Jira is at https://hibernate.atlassian.net (project key: `HHH`).
 - When working on a Jira issue, always read the full details of the report (including all available fields and comments) to have as much context as possible. Use the Atlassian MCP to query for issue information.
+- When calling Atlassian MCP tools, always use `https://hibernate.atlassian.net` as the `cloudId`. Do not call `getAccessibleAtlassianResources` — it returns empty results with API token auth.
 - Commit messages must always start with the Jira key they reference (e.g. `HHH-12345 Fix something`).
 - Naming branches after the Jira key (e.g. `HHH-12345`) is a good default — it makes them easy to find.
 
