@@ -199,3 +199,41 @@ regression.
 The Develocity REST API (`/api/tests/containers`, `/api/tests/cases`)
 provides programmatic access to this data but requires an access key
 (Bearer token). It is not accessible anonymously.
+
+## 6. Never Dismiss Failures Without Evidence
+
+**Never claim a CI failure is "pre-existing", "unrelated to your
+changes", or "likely flaky" without concrete evidence.** When you
+encounter a failure you don't understand, the honest answer is "I don't
+know what caused this" — not "it's probably pre-existing."
+
+Before you may classify a failure as pre-existing or unrelated, you
+**must** provide evidence from at least one of:
+
+1. **A CI run on another branch showing the same failure.** Check
+   recent runs on the base branch (e.g. `main`) or other unrelated PRs:
+
+   ```bash
+   # List recent CI runs on the base branch
+   gh run list --repo <owner>/<repo> --branch main --limit 10 --json databaseId,conclusion \
+     --jq '.[] | select(.conclusion == "failure") | .databaseId'
+
+   # Download failed logs from a base-branch run and search for the same error
+   gh run view <base-branch-run-id> --repo <owner>/<repo> --log-failed > /tmp/main-failed.txt
+   grep -n "<pattern-from-the-failure>" /tmp/main-failed.txt
+   ```
+
+2. **Develocity test history** (see section 5) showing the test has
+   been failing or flaky in recent builds on other branches:
+
+   ```
+   https://<instance>/scans/tests?tests.container=<fully.qualified.ClassName>&tests.test=<testMethodName>
+   ```
+
+If neither method produces evidence, **do not speculate**. Instead:
+
+- Investigate the failure as if it were caused by the current changes.
+- If you still cannot determine the cause, say so explicitly and ask
+  for guidance. "I wasn't able to determine the root cause of this
+  failure" is always better than an unfounded claim that it's
+  pre-existing.
