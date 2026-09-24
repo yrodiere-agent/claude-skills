@@ -83,6 +83,26 @@ gh pr create \
 - Only target repos the human told you to target — never spontaneously
   open PRs against repos you were not asked to contribute to
 
+### Keeping PRs in Sync
+
+When you push new commits to a branch that backs an existing PR,
+**always update the PR title and description to match the changes.**
+A PR whose description doesn't reflect its commits is confusing for
+reviewers and may lead to wrong merge decisions.
+
+```bash
+gh pr edit <number> --repo <target-owner>/<repo> \
+  --title "New title" \
+  --body "$(cat <<'BODY'
+Updated description.
+BODY
+)"
+```
+
+This applies after any push — rebases, fixups, added commits, or
+force-pushes that rewrite history. The PR description is the
+reviewer's entry point; stale descriptions waste their time.
+
 ## GitHub API Rate Limits
 
 The GitHub API token is shared with other processes on the same
