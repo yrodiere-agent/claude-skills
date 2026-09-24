@@ -40,6 +40,59 @@ GIT_SEQUENCE_EDITOR="sed -i 's/pick <hash>/edit <hash>/'" git rebase -i <base>
 
 At each stop: build, test, fix, then `git rebase --continue`.
 
+### Rewording a Commit Message
+
+`GIT_SEQUENCE_EDITOR` controls the rebase todo list; `GIT_EDITOR`
+controls the commit message editor invoked for `reword` stops. Both
+must be set for a non-interactive reword to work.
+
+Write the new message to a file, then use a shell script as editor:
+
+```bash
+cat > /tmp/new-msg.txt <<'EOF'
+New commit subject
+
+New commit body.
+EOF
+
+cat > /tmp/replace-msg.sh <<'SCRIPT'
+#!/bin/bash
+cp /tmp/new-msg.txt "$1"
+SCRIPT
+chmod +x /tmp/replace-msg.sh
+
+GIT_SEQUENCE_EDITOR="sed -i '1s/^pick/reword/'" \
+  GIT_EDITOR="/tmp/replace-msg.sh" \
+  git rebase -i <commit>^
+```
+
+**Pitfall:** `EDITOR` does not work here — git rebase uses
+`GIT_EDITOR` (or `core.editor`), not `EDITOR`. Using the wrong
+variable silently keeps the old message.
+
+### Squashing a Specific Commit
+
+To squash commit B into an earlier commit A (when B is already
+adjacent to A, i.e. directly after it):
+
+```bash
+GIT_SEQUENCE_EDITOR="sed -i 's/^pick <hash-of-B>/fixup <hash-of-B>/'" \
+  git rebase -i <parent-of-A>
+```
+
+When B is *not* adjacent to A, reorder first:
+
+```bash
+# Move B right after A and fixup in one operation:
+GIT_SEQUENCE_EDITOR='
+  /^pick <hash-of-B>/{H;d}
+  /^pick <hash-of-A>/{ p; g; s/^pick/fixup/; }
+' git rebase -i <parent-of-A>
+```
+
+Or use two steps: first reorder with `GIT_SEQUENCE_EDITOR`, then
+squash with `--autosquash` on a second pass.
+
 ## Fixup Commits
 
 Fixup commits let the human inspect exactly what you changed. Each fixup
