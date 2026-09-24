@@ -1,10 +1,9 @@
 ---
 name: git-rebase-workflow
 description: >
-  Patterns for interactive rebasing, fixup commits, and incremental
-  verification of multi-commit branches. For complex, long-running tasks
-  where testing is expensive and changes have side-effects across many
-  modules.
+  Non-interactive git rebase operations: rewording commit messages,
+  squashing/reordering commits, fixup workflows, and incremental
+  verification of multi-commit branches.
 ---
 
 # Git Rebase Workflow
