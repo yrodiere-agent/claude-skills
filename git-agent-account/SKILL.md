@@ -3,9 +3,10 @@ name: git-agent-account
 description: >
   Working with git and GitHub as an agent using a dedicated account
   (e.g. "yrodiere-agent"). Covers forking, pushing, pull requests, and
-  the constraints of not having push access to upstream repositories.
-  Load before any `git push` or `gh pr create` when the OS user or
-  GitHub account contains "agent".
+  the constraints of not having push access to upstream repositories,
+  and checking that work is based on the latest target branch.
+  Load before starting repository work, and before any `git push` or
+  `gh pr create`, when the OS user or GitHub account contains "agent".
 ---
 
 # Git Agent Account
@@ -22,6 +23,45 @@ you interact with git and GitHub.
 the human explicitly asks you to. Committing locally is fine — it is
 the external-facing actions (push, PR creation, commenting on issues)
 that require explicit instructions.
+
+## Check the Target Branch Before Work and Before a PR
+
+**Always check against a freshly fetched target branch before starting
+repository work and again immediately before sending a PR.** An existing
+remote-tracking ref is not evidence that the branch is current.
+
+Identify the intended target repository and branch from the user's request
+or an existing PR's base. Otherwise use the target repository's default
+branch. Check remote URLs: the target may be `upstream` while `origin`
+points to the agent fork. Fetch from the target repository, not merely the
+fork, and verify that its latest target commit is an ancestor of `HEAD`:
+
+```bash
+git fetch <target-remote> <target-branch>
+git merge-base --is-ancestor <target-remote>/<target-branch> HEAD
+```
+
+Use the fetched commit (`FETCH_HEAD`) if the remote's fetch configuration
+does not update that remote-tracking ref. A nonzero ancestry result must
+be investigated; distinguish an outdated base from a fetch or Git error.
+If fetching fails, report that freshness could not be verified rather
+than treating the cached ref as current.
+
+For new work, create the working branch from the freshly fetched target
+commit. For an existing working branch that lacks that commit, rebase its
+work onto the latest target before continuing, preserving local changes
+and resolving conflicts. Respect any explicit user instruction to use a
+particular base or avoid rewriting history; explain any remaining stale
+base instead of claiming it is current.
+
+Repeat the fetch and ancestry check immediately before opening a PR,
+including when substantial time has elapsed since the initial check.
+If the target advanced, rebase, run checks appropriate to the affected
+changes, and push the updated branch before creating the PR. Perform the
+same check before pushing updates to an existing PR. For a rebased branch
+already published to the agent fork, use `--force-with-lease` to avoid
+overwriting concurrent remote changes. These checks do not authorize
+pushing or PR creation; the explicit-authorization rule still applies.
 
 ## Push Access
 
