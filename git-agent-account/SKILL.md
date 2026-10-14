@@ -3,9 +3,10 @@ name: git-agent-account
 description: >
   Working with git and GitHub as an agent using a dedicated account
   (e.g. "yrodiere-agent"). Covers forking, pushing, pull requests, and
-  the constraints of not having push access to upstream repositories.
-  Load before any `git push` or `gh pr create` when the OS user or
-  GitHub account contains "agent".
+  the constraints of not having push access to upstream repositories,
+  and checking that work is based on the latest target branch.
+  Load before starting repository work, and before any `git push` or
+  `gh pr create`, when the OS user or GitHub account contains "agent".
 ---
 
 # Git Agent Account
@@ -22,6 +23,20 @@ you interact with git and GitHub.
 the human explicitly asks you to. Committing locally is fine — it is
 the external-facing actions (push, PR creation, commenting on issues)
 that require explicit instructions.
+
+## Check the Target Branch
+
+Before starting work and before opening or updating a PR, fetch the target
+branch from the target repository (not the agent fork) and check:
+
+```bash
+git fetch <target-remote> <target-branch>
+git merge-base --is-ancestor FETCH_HEAD HEAD
+```
+
+If behind, rebase onto the fetched commit and rerun relevant checks before
+continuing. Respect explicit user constraints; report failed fetches.
+Publish rebased branches with `--force-with-lease`.
 
 ## Push Access
 
