@@ -1,11 +1,11 @@
 ---
 name: hibernate-orm
-description: This skill should be used when the user works on Hibernate ORM code, asks to "review a Hibernate PR", "fix a Hibernate bug", "write a Hibernate test", "build Hibernate", or needs guidance on Hibernate project conventions, structure, or workflows. Complements the java-architect skill with Hibernate-specific knowledge.
+description: Develop, test, build, or review Hibernate ORM code using project-specific conventions.
 ---
 
 ## Workspaces and Git Operations
 
-- The main workspace is `/Volumes/CaseSensitive/Projects/hibernate-orm`, tracking the `main` branch (most recent version).
+- The main workspace is `/Volumes/CaseSensitive/Projects/hibernate-orm`, tracking the `main` branch.
 - Additional workspaces exist for each maintained branch, named `/Volumes/CaseSensitive/Projects/hibernate-orm_<version>` (e.g. `hibernate-orm_7.2`). These are used for version-specific debugging, backporting, etc.
 - When backporting or moving code between branches, always use `git cherry-pick` rather than manually copying code, unless cherry-pick conflicts make it impractical.
 - A `/Volumes/CaseSensitive/Projects/hibernate-backport.sh` script is available for interactively creating backport PRs (mainly for bugfixes).
@@ -23,9 +23,7 @@ description: This skill should be used when the user works on Hibernate ORM code
 5. Read the test changes and verify they reproduce the bug WITHOUT the fix
 6. Analyze the fix for correctness, edge cases, and minimal scope
 7. Check if previous review comments were addressed as asked (if any)
-8. Present structured findings: Summary, Jira Context, Test Coverage, Fix Analysis, Concerns
-
-Note: these steps can be done as parallel sub-agents (Agent tool); do not skip the Jira context step.
+8. Report actionable findings with Jira context and test coverage
 
 ## Jira
 
@@ -84,19 +82,15 @@ Testing infrastructure lives in `hibernate-testing` under `org.hibernate.testing
 - `@Internal` — marks code that is internal but leaks through API/SPI due to technical constraints or historical reasons. No compatibility guarantees.
 - `@Incubating` — code still under development that may become stable API/SPI in the future. No compatibility guarantees; can change or be removed at any time, including in bugfix releases.
 
-### Guidelines for contributors
-
-- Never break API contracts within a major version. New API methods/classes are fine; changing or removing existing ones is not.
-- SPI changes should be confined to minor version bumps. Avoid breaking SPI in micro (bugfix) releases.
-- When adding new API or SPI, consider whether it should be marked `@Incubating` first.
-- Internal code can be freely refactored, but be aware that `@Internal`-annotated code in API/SPI packages may be used by external consumers despite the annotation.
-- Versioning follows `major.minor.micro.qualifier` (e.g. `6.6.1.Final`). Major = potential API breaks, minor = additions only, micro = bugfixes only.
+For new API/SPI, consider `@Incubating`. Account for external use of
+`@Internal` members. Versions follow `major.minor.micro.qualifier`.
 
 ## Code style
 
 The authoritative formatting reference is the IntelliJ code style config at [hibernate_orm_codestyle.xml](hibernate_orm_codestyle.xml). Read it when generating or editing code to match the project's formatting conventions (wrapping, spacing, indentation, brace placement, etc.).
 
-The project uses [Spotless](https://github.com/diffplug/spotless) to enforce a subset of formatting rules (e.g. license headers, import ordering, trailing whitespace). Spotless does not cover all style conventions, so always follow the full code style guidelines when writing code. Before pushing a branch or opening a PR, run `./gradlew spotlessApply` on the affected modules (e.g. `./gradlew hibernate-core:spotlessApply`) to auto-fix any violations. This should be one of the last steps in a work cycle, after the final review of the changes and before committing/pushing.
+Spotless covers only part of the style. After final edits and before publishing,
+run `./gradlew <affected-module>:spotlessApply`.
 
 Key rules not expressed in the XML:
 
@@ -124,8 +118,10 @@ Key rules not expressed in the XML:
 - Test entities should never use identifiers with an explicit `IDENTITY` generation strategy, unless that's specifically what the test is verifying. Even then, such tests should be restricted to dialects with identity column support.
 - All tests should refer to their corresponding Jira issue with the `@Jira("https://hibernate.atlassian.net/browse/HHH-12345")` annotation. Existing tests that use alternative annotations with only the Jira key do not need to be modified.
 - Tests which verify dialect-specific features should not use `instanceof` / `getClass()` checks, but instead rely on the `@RequiresDialect` or `@RequiresDialectFeature` annotations.
-- During development, prefer running test methods one at a time. The `@SessionFactory` extension destroys and rebuilds the session factory when a test method fails, which means `@BeforeAll` data is lost and subsequent methods will produce invalid results. When JetBrains MCP tools are available, prefer running individual test methods through the IDE (discover run points in the test file, then execute them). This is the preferred approach because the output is directly visible in the user's IDE UI. Alternatively, use parallel sub-agents (Agent tool) to run multiple test methods concurrently via Gradle CLI. There is no problem with concurrent execution since each test gets its own session factory. Running the whole class is fine (and faster) when expecting all tests to pass (e.g. after development, or during simple refactorings).
-- When using parallel sub-agents to run tests via Gradle CLI, first compile the test sources manually once (e.g. `./gradlew <module>:testClasses`), then launch sub-agents that only execute tests (not compile). This avoids potential issues with multiple Gradle processes compiling in parallel. This is not needed when running tests through JetBrains MCP, which handles compilation automatically.
+- Run individual test methods while debugging: `@SessionFactory` rebuilds after
+  failures, losing `@BeforeAll` data. Run the whole class when expecting success.
+  Prefer JetBrains MCP run points when available. Before parallel Gradle runs,
+  compile once with `./gradlew <module>:testClasses` to avoid concurrent compilation.
 - Always ask for confirmation before running tests, unless explicitly asked to do so.
 
 ## Documentation

@@ -5,8 +5,6 @@ description: Use this skill to develop the Quarkus framework or applications bas
 
 # Quarkus Development Skill
 
-Expert guidance for Quarkus framework and application development.
-
 ## Build Commands
 
 Prefer `mvnd` (Maven Daemon) over `./mvnw` when available — it keeps a
@@ -31,9 +29,7 @@ mvnd test -Dtest=MyTest -f extensions/<name>/deployment/               # Run sin
   applied automatically during compilation.
 - When using `./mvnw` instead of `mvnd`, add `-T 0.5C` to parallelize
   module builds.
-- **Remember the build is very long (10+ minutes)**. It is not a viable strategy to re-run it
-  just to look more precisely for errors. If you intend to do that, make sure to save build
-  logs to a file when building, then work on that file for various grep operations.
+- Save build logs and search them; full builds take 10+ minutes.
 
 ## Project Structure
 
@@ -86,8 +82,8 @@ Fixes:
   (feeds into a later Arc phase, after `BeanDiscoveryFinished`)
 - Extract the offending production into a separate build step
 
-`SyntheticBeanBuildItem` does NOT cause cycles because it feeds into
-`BeanRegistrationPhaseBuildItem`, which is after `BeanDiscoveryFinished`.
+Synthetic beans feed the later `BeanRegistrationPhaseBuildItem`; verify
+that other dependencies do not reintroduce a cycle.
 
 ### Synthetic Beans
 
@@ -162,7 +158,3 @@ static final QuarkusExtensionTest config = new QuarkusExtensionTest()
 - No `@author` tags, no wildcard imports
 - Use `@ConfigMapping` interfaces for configuration
 - Use `String.format(Locale.ROOT, ...)` — `.formatted()` is a forbidden API
-
-## Common Pitfalls
-
-- **Classloading**: runtime code must never reference deployment classes

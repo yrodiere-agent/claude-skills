@@ -8,10 +8,6 @@ description: >
 
 # Git Rebase Primitives
 
-Recipes for non-interactive rebase operations. These work in any
-context — you don't need the full fixup workflow from
-`git-rebase-workflow` to use them.
-
 ## GIT_SEQUENCE_EDITOR Basics
 
 Use `GIT_SEQUENCE_EDITOR` to script the rebase todo list — never use
@@ -22,8 +18,7 @@ Use `GIT_SEQUENCE_EDITOR` to script the rebase todo list — never use
 GIT_SEQUENCE_EDITOR="sed -i 's/^pick /edit /'" git rebase -i <base>
 
 # Autosquash fixup commits:
-GIT_SEQUENCE_EDITOR="cat" git rebase -i --autosquash <base>  # preview
-git rebase -i --autosquash <base>                              # execute
+GIT_SEQUENCE_EDITOR=true git rebase -i --autosquash <base>      # execute
 
 # Stop at a specific commit during rebase:
 GIT_SEQUENCE_EDITOR="sed -i 's/pick <hash>/edit <hash>/'" git rebase -i <base>
@@ -86,22 +81,16 @@ squash with `--autosquash` on a second pass.
 
 ## Fixup Commits
 
-Fixup commits mark a commit as a correction to an earlier commit.
-`git rebase --autosquash` folds them automatically.
+Create a fixup, then autosquash it:
 
 ```bash
-git commit -m "$(cat <<'EOF'
-fixup! <exact subject line of the target commit>
-
-<description of what this fixup does>
-EOF
-)"
+git commit --fixup=<target-commit>
 ```
 
 Then squash with autosquash:
 
 ```bash
-git rebase -i --autosquash <base>
+GIT_SEQUENCE_EDITOR=true git rebase -i --autosquash <base>
 ```
 
 ## Handling Rebase Conflicts
@@ -131,20 +120,12 @@ Tag important states so the human can fetch them from your fork:
 git tag fixup-commit3-v1 <hash>
 ```
 
-## Temporary Branches for Testing
+## Test Earlier Commits
 
-To test at a specific commit without disrupting the branch:
-
-```bash
-git checkout <hash>          # detached HEAD
-# build and test
-git checkout main            # return
-```
-
-Or create a temporary branch:
+Use a separate worktree to avoid disturbing the active rebase or local changes:
 
 ```bash
-git checkout -b temp-test <hash>
-# build and test
-git checkout main && git branch -D temp-test
+git worktree add --detach /tmp/rebase-check <commit>
+# Build and test in /tmp/rebase-check
+git worktree remove /tmp/rebase-check
 ```
