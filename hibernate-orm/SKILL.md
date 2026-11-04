@@ -94,13 +94,7 @@ run `./gradlew <affected-module>:spotlessApply`.
 
 Key rules not expressed in the XML:
 
-- All source files must include the license header:
-  ```
-  /*
-   * SPDX-License-Identifier: Apache-2.0
-   * Copyright Red Hat Inc. and Hibernate Authors
-   */
-  ```
+- Do not add file license headers to source files. Starting with Hibernate ORM 8, source files should not have license headers.
 - Always use `var` where appropriate and where it doesn't reduce readability.
 - Never use wildcard imports — always use single-class imports.
 - Never use non-ASCII characters in code, comments, or Javadoc. Use plain ASCII alternatives: a single hyphen `-` instead of em/en dashes, straight quotes `"` instead of smart quotes, etc.
